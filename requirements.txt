@@ -1,3 +1,4 @@
 pyaudio
 wave
 subprocess
+python-dotenv
