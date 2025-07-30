@@ -9,7 +9,12 @@ load_dotenv()  # Load environment variables from .env file
 # === Configuration ====
 filename_wav = "lecture.wav"
 filename_mp3 = "lecture.mp3"
-duration = 60 * 5  # 5 minutes; change as needed
+
+#---------------ASK USER FOR DURATION-------------------#
+duration = 60 * 5  # 5 minutes; change as needed, ASK USER
+#-------------------------------------------------------#
+
+
 chunk = 1024
 format = pyaudio.paInt16
 channels = 1
