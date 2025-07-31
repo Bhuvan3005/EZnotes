@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from EZnotes.record import AudioRecorder
-from EZnotes.models.transcirbe import Transcriber
-from EZnotes.models.summarize import Summarizer  
+from record import AudioRecorder
+from models.transcirbe import Transcriber
+from models.summarize import Summarizer  
 
 app = FastAPI()
 recorder = None
