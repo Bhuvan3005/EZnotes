@@ -14,30 +14,42 @@ collection = db["test3"]
 
 groq_api_key = os.getenv("GROQ_API_KEY") 
 
+class Summarizer:
+    def __init__(self, audio_path):
+        self.audio_path = audio_path
 
-# STEP 2: Retrieve stored chunks
-chunk_texts = [doc["text"] for doc in collection.find({"file_name":"lecture.mp3"}, {"_id": 0, "text": 1})]
+    def summarize_audio(self):
+        if not os.path.exists(self.audio_path):
+            print("❌ File not found:", self.audio_path)
+            return None
 
-if not chunk_texts:
-    raise ValueError("No chunks found for 'audio.mp3' in the database.")
+        # STEP 1: Transcribe audio to text
 
-# STEP 3: Wrap each chunk in a LangChain Document
 
-docs = [Document(page_content=chunk_texts[i], metadata={"chunk_index": i}) for i in range(len(chunk_texts))]
-##docs = [Document(page_content=full_text)]
+        # STEP 2: Retrieve stored chunks
+        chunk_texts = [doc["text"] for doc in collection.find({"file_name":"lecture.mp3"}, {"_id": 0, "text": 1})]
 
-# STEP 4: Initialize ChatGroq with Gemma
-llm = ChatGroq(
-    groq_api_key=groq_api_key,
-    model_name="gemma2-9b-it"
-)
+        if not chunk_texts:
+            raise ValueError("No chunks found for 'audio.mp3' in the database.")
 
-# STEP 5: Load refine summarization chain
-chain = load_summarize_chain(llm, chain_type="refine")
+        # STEP 3: Wrap each chunk in a LangChain Document
 
-# STEP 6: Run summarization
-summary = chain.run(docs)
+        docs = [Document(page_content=chunk_texts[i], metadata={"chunk_index": i}) for i in range(len(chunk_texts))]
+        ##docs = [Document(page_content=full_text)]
 
-# STEP 7: Print or return the summary
-print("\n🔍 Final Summary:\n")
-print(summary)
+        # STEP 4: Initialize ChatGroq with Gemma
+        llm = ChatGroq(
+            groq_api_key=groq_api_key,
+            model_name="gemma2-9b-it"
+        )
+
+        # STEP 5: Load refine summarization chain
+        chain = load_summarize_chain(llm, chain_type="refine")
+
+        # STEP 6: Run summarization
+        summary = chain.run(docs)
+
+        # STEP 7: Print or return the summary
+        print("\n🔍 Final Summary:\n")
+        print(summary)
+        return summary

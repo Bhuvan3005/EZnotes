@@ -3,48 +3,48 @@ from faster_whisper import WhisperModel
 from pymongo import MongoClient
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from dotenv import load_dotenv
+
 load_dotenv()
 
+class Transcriber:
+    def __init__(self, audio_path):
+        self.audio_path = audio_path
 
-# Load model
-model = WhisperModel("Systran/faster-whisper-tiny")
+    def transcribe_audio(self):
+        model = WhisperModel("Systran/faster-whisper-tiny", device="cpu")
 
-# Audio file
-audio_path = "lecture.mp3"
+        if not os.path.exists(self.audio_path):
+            print("❌ File not found:", self.audio_path)
+            return None
 
-if not os.path.exists(audio_path):
-    print("❌ File not found:", audio_path)
-    exit()
+        segments, info = model.transcribe(self.audio_path)
+        full_text = " ".join([segment.text.strip() for segment in segments])
 
-# Transcribe
-segments, info = model.transcribe(audio_path)
-full_text = " ".join([segment.text.strip() for segment in segments])
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200,
+        )
+        docs = text_splitter.create_documents([full_text])
+        return docs
 
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000,    # Adjust chunk size as needed
-    chunk_overlap=200,  # Adjust overlap as needed 
-)
+    def store_in_mongodb(self, docs):
+        if docs is None:
+            print("⚠ No documents to store.")
+            return
 
-docs = text_splitter.create_documents([full_text])
+        mongo_uri = os.getenv("MONGO_URI")
+        if not mongo_uri:
+            raise ValueError("MONGO_URI not set in .env")
 
-mongo_uri = os.getenv("MONGO_URI")
-print(mongo_uri)
+        client = MongoClient(mongo_uri)
+        db = client["EZnotes"]
+        collection = db["test3"]
 
-client = MongoClient(mongo_uri)
-db = client["EZnotes"]
-collection = db["test3"]
+        for i, chunk in enumerate(docs):
+            collection.insert_one({
+                "file_name": os.path.basename(self.audio_path),
+                "chunk_index": i,
+                "text": chunk.page_content.strip(),
+            })
 
-# Save chunks with index
-for i, chunk in enumerate(docs):
-    collection.insert_one({
-        
-        "file_name": os.path.basename(audio_path),
-        "chunk_index": i,
-        "text": chunk.page_content.strip(),
-    })
-
-print(f"✅ Stored {len(docs)} chunks in MongoDB.")
-
-
-
-
+        print(f"✅ Stored {len(docs)} chunks in MongoDB.")

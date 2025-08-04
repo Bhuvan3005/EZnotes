@@ -1,8 +1,13 @@
 pyaudio
 wave
 python-dotenv
-pymongo
+fastapi
+uvicorn
 faster-whisper
 
 langchain
 langchain-groq
+
+
+pymongo
+
