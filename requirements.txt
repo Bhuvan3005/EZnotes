@@ -8,4 +8,6 @@ faster-whisper
 langchain
 langchain-groq
 
+
 pymongo
+
